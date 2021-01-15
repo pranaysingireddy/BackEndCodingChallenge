@@ -2,6 +2,7 @@
 using BackEndCodingChallenge.Repo;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
 using System;
 using System.Collections.Generic;
@@ -30,7 +31,7 @@ namespace BackEndCodingChallenge.API.Controllers
         [HttpGet]
         [Route("GetAllContacts")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public IActionResult GetContacts()
+        public IActionResult GetAllContacts()
         {
 
             return Ok(_repo.GetAllContacts());
@@ -59,72 +60,23 @@ namespace BackEndCodingChallenge.API.Controllers
         }
 
         /// <summary>
-        /// Creates a new contact
-        /// </summary>
-        /// <remarks>
-        /// Sample request
-        /// 
-        /// POST /savecontact
-        ///     {
-        ///         "Id": "8c305dd0-f61f-467e-9209-2a563ac9a09d",
-        ///         "Name": "Quincy Oatley",
-        ///         "Company": "Rooxo",
-        ///         "Email": "qoatleyf@sun.com",
-        ///         "Dob":  "2020-06-08T21:47:00",
-        ///         "ImageUrl": "https://robohash.org/nihileiusoptio.bmp?size=50x50&set=set1",
-        ///         "Address": {
-        ///           "Address1": "99696 Moland Place",
-        ///           "Address2": "3262",
-        ///           "City": "Des Moines",
-        ///           "ZipCode": "50330",
-        ///           "State":"Test",
-        ///           "Country": "United States"
-        ///         }
-        //      }
-        /// </remarks>
-        /// <param name="contact"></param>
-        /// <returns>return HttpStatusCode of result</returns>
-        [HttpPost]
-        [Route("savecontact")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult PostContact(Contact contact)
-        {
-            if (ModelState.IsValid)
-            {
-                if (_repo.CreateContact(contact))
-                {
-                    return Ok();
-                }
-                else
-                {
-                    ModelState.AddModelError("SaveContact", "Error Occured");
-                }
-
-            }
-            return BadRequest(ModelState);
-
-        }
-
-        /// <summary>
         /// Save a contact
         /// </summary>
         /// <param name="contact"></param>
         /// <param name="file"></param>
-        /// <returns></returns>
+        /// <returns>return HttpStatusCode of result</returns>
         [HttpPost]
-        [Route("hello")]
-        public IActionResult Upload([ModelBinder(BinderType = typeof(JsonModelBinder))] ContactDTO contact,IFormFile file)
+        [Route("createcontact")]
+        public IActionResult CreateContact([ModelBinder(BinderType = typeof(JsonModelBinder))] ContactDTO contact,IFormFile file)
         {
-
             contact.Id = Guid.NewGuid().ToString();
 
-            if (file.Length > 0)
+            if (file != null&& file.Length > 0)
             {
                 contact.Image = file;
             }
 
-            _repo.CreateContact1(contact);
+            _repo.CreateContact(contact);
 
             return Ok();
         }
@@ -133,27 +85,6 @@ namespace BackEndCodingChallenge.API.Controllers
         /// <summary>
         ///  Update a contact
         /// </summary>
-        /// <remarks>
-        /// Sample request
-        /// 
-        /// POST /savecontact
-        ///     {
-        ///         "Id": "8c305dd0-f61f-467e-9209-2a563ac9a09d",
-        ///         "Name": "Quincy Oatley",
-        ///         "Company": "Rooxo",
-        ///         "Email": "qoatleyf@sun.com",
-        ///         "Dob":  "2020-06-08T21:47:00",
-        ///         "ImageUrl": "https://robohash.org/nihileiusoptio.bmp?size=50x50&set=set1",
-        ///         "Address": {
-        ///           "Address1": "99696 Moland Place",
-        ///           "Address2": "3262",
-        ///           "City": "Des Moines",
-        ///           "ZipCode": "50330",
-        ///           "State":"Test",
-        ///           "Country": "United States"
-        ///         }
-        //      }
-        /// </remarks>
         /// <param name="id"></param>
         /// <param name="contact"></param>
         /// <returns>return HttpStatusCode of result</returns>
@@ -161,10 +92,15 @@ namespace BackEndCodingChallenge.API.Controllers
         [Route("updateContact/{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult UpdateContact(string id, Contact contact)
+        public IActionResult UpdateContact(string id,[ModelBinder(BinderType = typeof(JsonModelBinder))] ContactDTO contact, IFormFile file)
         {
             if (ModelState.IsValid)
             {
+                if (file!=null &&file.Length > 0 && Path.GetExtension(file.FileName) == "JPEG")
+                {
+                    contact.Image = file;
+                }
+
                 if (_repo.UpdateContact(id, contact))
                 {
                     return Ok();
@@ -256,11 +192,5 @@ namespace BackEndCodingChallenge.API.Controllers
             }
 
         }
-
-
-
-
-
-
     }
 }

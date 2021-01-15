@@ -50,11 +50,11 @@ namespace BackEndCodingChallenge.Repo
             }
         }
 
-        public bool CreateContact1(ContactDTO contactDto)
+        public bool CreateContact(ContactDTO contactDto)
         {
             try
             {
-                if (contactDto.Image.Length > 0)
+                if (contactDto.Image!=null&&contactDto.Image.Length > 0)
                 {
                     var file = contactDto.Image;
                     var fileNameExtension = Path.GetExtension(contactDto.Image.FileName);
@@ -69,8 +69,10 @@ namespace BackEndCodingChallenge.Repo
                     Name = contactDto.Name,
                     Company = contactDto.Company,
                     Dob = contactDto.Dob,
-                    ImageUrl=contactDto.ImageUrl,
+                    ImageUrl = contactDto.ImageUrl,
                     Address = contactDto.Address != null ? contactDto.Address : new Address(),
+                    Email = contactDto.Email,
+                    PhoneNumber = contactDto.PhoneNumber != null ? contactDto.PhoneNumber : null
                 };
 
                 contacts.Add(cont);
@@ -99,51 +101,58 @@ namespace BackEndCodingChallenge.Repo
             return contacts.Where(a => a.Email == email || (a.PhoneNumber?.PersonalPhone == phoneNumber || a.PhoneNumber?.WorkPhone == phoneNumber)).FirstOrDefault();
         }
 
-       
-
-       
-
-        public bool UpdateContact(string id, Contact contact)
+        public bool UpdateContact(string id, ContactDTO contactDto)
         {
             var record = contacts.Where(a => a.Id == id).FirstOrDefault();
             if (record != null)
             {
-                record.Name = contact.Name;
-                record.Email = contact.Name;
-                record.Company = contact.Company;
-                record.Dob = contact.Dob;
+                record.Name = contactDto.Name;
+                record.Email = contactDto.Name;
+                record.Company = contactDto.Company;
+                record.Dob = contactDto.Dob;
 
-                if (contact.Address != null)
+                if (contactDto.Address != null)
                 {
-                    record.Address.Address1 = contact.Address.Address1;
-                    record.Address.Address2 = contact.Address.Address2;
-                    record.Address.City = contact.Address.City;
-                    record.Address.State = contact.Address.State;
-                    record.Address.ZipCode = contact.Address.ZipCode;
-                    record.Address.Country = contact.Address.Country;
+                    record.Address.Address1 = contactDto.Address.Address1;
+                    record.Address.Address2 = contactDto.Address.Address2;
+                    record.Address.City = contactDto.Address.City;
+                    record.Address.State = contactDto.Address.State;
+                    record.Address.ZipCode = contactDto.Address.ZipCode;
+                    record.Address.Country = contactDto.Address.Country;
                 }
 
-                if (contact.PhoneNumber != null)
+                if (contactDto.PhoneNumber != null)
                 {
                     if (record.PhoneNumber != null)
                     {
-                        record.PhoneNumber.PersonalPhone = contact.PhoneNumber.PersonalPhone;
-                        record.PhoneNumber.WorkPhone = contact.PhoneNumber.WorkPhone;
+                        record.PhoneNumber.PersonalPhone = contactDto.PhoneNumber.PersonalPhone;
+                        record.PhoneNumber.WorkPhone = contactDto.PhoneNumber.WorkPhone;
                     }
                     else
                     {
                         PhoneNumber number = new PhoneNumber
                         {
-                            PersonalPhone = contact.PhoneNumber.PersonalPhone,
-                            WorkPhone = contact.PhoneNumber.WorkPhone
+                            PersonalPhone = contactDto.PhoneNumber.PersonalPhone,
+                            WorkPhone = contactDto.PhoneNumber.WorkPhone
                         };
 
                         record.PhoneNumber = number;
 
                     }
                 }
-                else {
+                else
+                {
                     record.PhoneNumber = null;
+                }
+
+                if (contactDto.Image !=null && contactDto.Image.Length > 0)
+                {
+                    var file = contactDto.Image;
+                    contactDto.ImageUrl = id;
+                    var fileNameExtension = Path.GetExtension(contactDto.Image.FileName);
+                    contactDto.ImageUrl = String.Concat(id, fileNameExtension);
+
+                    UpdateContactImage(contactDto);
                 }
 
                 return true;
@@ -174,6 +183,25 @@ namespace BackEndCodingChallenge.Repo
             {
                 file.CopyTo(fs);
                 fs.Flush();
+            }
+        }
+
+        private void UpdateContactImage(ContactDTO contact)
+        {
+
+            var file = contact.Image;
+
+            // Combines two strings into a path.
+            var filepath = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images")).Root + $@"\{contact.ImageUrl}";
+
+            if (File.Exists(filepath))
+            {
+                File.Delete(filepath);
+            }
+
+            using (var output = File.OpenWrite(filepath))
+            {
+                file.CopyTo(output);
             }
         }
 

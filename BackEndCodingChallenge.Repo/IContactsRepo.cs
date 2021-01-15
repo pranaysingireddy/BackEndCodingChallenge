@@ -10,13 +10,11 @@ namespace BackEndCodingChallenge.Repo
 
         List<Contact> GetAllContacts();
 
-        bool CreateContact(Contact contact);
-
-        bool CreateContact1(ContactDTO contact);
+        bool CreateContact(ContactDTO contact);
 
         Contact GetContact(string name);
 
-        bool UpdateContact(string id, Contact contact);
+        bool UpdateContact(string id, ContactDTO contact);
 
         bool DeleteContact(string id);
 
